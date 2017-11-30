@@ -1,0 +1,35 @@
+<./>---- README.md
+ |
+ |
+ |------- [ DOC ]
+ |         |
+ |         |------- filetree.txt : this file
+ |         |
+ |         |
+ |         \------- tutorial.md  : Super-Population classification by kNN-Syntax method
+ |
+ |------- [ bin ]  binary files are here.
+ |	   |	
+ |	   |----- FIP                : the program generate Syntax profiles from plink ped file. 
+ |           |
+ |           |--- sort.sh            : generate filtered list of syntaxes for filtering purpose.
+ |           |
+ |           |--- FIPfilt            : which generate filtered profile from whole-profile.
+ |           |
+ |           |--- 
+ |           |
+ |           |--- helloknn.R         : R script for k-NN from distance matrix.
+ |           |
+ |           |--- ffpjsd2014         : calculate JS divergence score
+ |           |
+ |           |--- get_accuracy_k.pl  :
+ |
+ |------- [ toy ] : example data generated from G1K data.
+           |
+           |-- g1k.affy6.chr22.fam   : sample file
+           |-- g1k.affy6.chr22.rename.fam : tagged fam file. the tag is used for the class.
+           |-- g1k.affy6.chr22.bed   : binary genotype file.
+	   |-- g1k.affy6.chr22.bim   : map file for binary plink file
+	   |-- toy1.tmp              : example of profile
+	   |-- toy2.tmp              : example of profile2
+	   |-- toy1.jsd              : example of jsd calculation(output)

@@ -1,0 +1,25 @@
+PLINK v1.90b3.29 64-bit (24 Dec 2015)
+Options in effect:
+  --bfile g1k.sample
+  --chr 22
+  --make-bed
+  --out g1k.affy6.chr22
+
+Hostname: cg00
+Working directory: /home/bjkim/workspace/GST/g1k_sample
+Start time: Thu Nov 30 07:46:14 2017
+
+Random number seed: 1511995574
+48271 MB RAM detected; reserving 24135 MB for main workspace.
+11813 variants loaded from .bim file.
+2457 people (0 males, 0 females, 2457 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to g1k.affy6.chr22.nosex .
+Using 1 thread (no multithreaded calculations invoked.
+Before main variant filters, 2457 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+11813 variants and 2457 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to g1k.affy6.chr22.bed + g1k.affy6.chr22.bim + g1k.affy6.chr22.fam
+... done.
+
+End time: Thu Nov 30 07:46:15 2017
