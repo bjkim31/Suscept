@@ -1,4 +1,4 @@
-# Tutorial for kNN+SNPS-S pipeline
+# Tutorial for kNN+SNP-Ss pipeline
 
 I'm writing this document right now.
 
@@ -8,15 +8,15 @@ BJ Kim (airbj31@yonsei.ac.kr / airbj31@berkeley.edu)
 
 # Table of Contents
 
-- [tutorial for program Usage](#Tutorial-for-program-usage)
+- [tutorial for kNN+SNP-Ss pipeline](#Tutorial-for-kNN+SNP-Ss-pipeline)
 - [Author](#Author)
 - [Table of Contents](#Table-of-contents)
 - [Procedure](#Procedure)
   - [Make plink ped file](#make-plink-ped-file)
   - [Training](#Training)
-    - [Make l-mer profiles](#make-l-mer-profile)
+    - [Make l-mer profile](#make-l-mer-profile)
     - [Filtering](#filtering)
-      - 1. [Make ]
+      - 1. [calculate frequency of SNP Syntaxes](#calculate-frequency-of-SNP-Syntaxes)
       - 2. [Make filtered Syntaxes list](#make-filtered-syntaxes-list)
       - 3. [Make filtered profiles](#make-filtered-profile)  
     - [distance calculation](#distance-calculation)
@@ -30,8 +30,6 @@ BJ Kim (airbj31@yonsei.ac.kr / airbj31@berkeley.edu)
   - [Testing](#Testing)
 
 - [TL;DR script](#TL;DR)
-    -
-    -
 
 # Procedure
 
@@ -89,7 +87,7 @@ in this tutorial, we suppose followings
 
 - You already add [./bin](../bin) to your PATH
 
-### Make l-mer profiles
+### Make l-mer profile
 
 
  FIP program create matrix of family id, individual id, and each SNP Syntaxes consists of index and genotype from non-binary plink .ped file.
@@ -118,9 +116,10 @@ in this tutorial, we suppose followings
 
 ### filtering 
 
+
 Filtering is divided into 3 steps.
 
-  1. calculate the proportion of SNP-Syntaxes
+#### calculate frequency of SNP Syntaxes
 
 ```
 	for l in 4 6 8;
@@ -132,7 +131,7 @@ Filtering is divided into 3 steps.
  the output is 2 column textfile containing SNP-Syntaxes and its proportion (percentage)
 
 
-  2. make filtered SNP-Syntaxes list 
+#### make filtered SNP-Syntaxes list 
 
 ```
 	for l in 4 6 8;
@@ -145,9 +144,12 @@ Filtering is divided into 3 steps.
 
 ```
 
- sort.sh is simple 'awk' command which extract first column based on the value of the second column of `fipmerge`'s output. the output is used for the SNP-Syntax filtering from the SNP-Syntax profile ('snps.l[:l-mer:].tmp) 
+ sort.sh is simple 'awk' command which extract first column based on the value of the second column of `fipmerge`'s output. 
 
-  3. make filtered profile
+ the output is used for the SNP-Syntax filtering from the SNP-Syntax profile ('snps.l[:l-mer:].tmp) 
+
+
+#### make filtered profile
 
 
 
@@ -171,24 +173,73 @@ Filtering is divided into 3 steps.
 
 
 ```
-	for name in $(cat [:PATH/TO/g1k.TRAIN.list:]);
+	mkdir BKsource;
+
+	for l in 4 6 8;
 	do 
-		ffpjsd2014 -p 6 -f $LIST ./$DIR/knn+snps/l$l/f$f/profile/$name.tmp > DIR/knn+snps/l[:l-mer:]/f[:filter:]/jsd/$name.jsd
+		for f in 1 5 100;
+		do
+			for name in $(cat [:PATH/TO/g1k.TRAIN.list:]);
+			do 
+				ffpjsd2014 -p 6 -f $LIST ./TS1/knn+snps/l$l/f$f/profile/$name.tmp > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
+			done
 	done
 
 ```
+
+JS Divergence is calculated simple C code implemented in `ffpjsd2014` 
+
+compiling is automatically done if you run the perl script however you need BKsource directory. so please make BKsource. 
+
+
 
 #### make matrix
 
 
 ```
-	cat TS1/knn+snps/l[:l-mer:]/f[:filter:]/jsd/* > TS1/knn+snps/l[:l-mer:]/f[:filter:]/snps.dist
-	
+	for l in 4 6 8;
+	do 
+		for f in 1 5 100;
+		do
+			cat TS1/knn+snps/l$l/f$f/jsd/* > TS1/knn+snps/l$l/f$f/snps.dist	
 
+		done
+	done
 ```
 
 ### perform kNN
 
+kNN clustering is performed by perl ([get_accuracy_k.pl](../bin/get_accuracy_k.pl)) or R ([helloKNN.R](../bin/hellokNN.R))
+
+```
+	for l in 4 6 8;
+	do
+		for f in 1 5 100;
+		do
+			for k in 1 5 10 20 30 40 50 60 70 80 90 100;
+			do
+				perl ~/devel/get_accuracy_k.pl -i 3 -f [:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l$l/f$f/snps.jsd.tmp -k $k -o opt/TS$DIR.l$lmer.f$freq.k$i.summary >> ./opt/TS$DIR.l$lmer.f$freq;		
+			done
+		done
+	done
+
+```
+
+arguments
+
+
+- i is the length of tag which denotes class of the sample. e.g) EUR for European.
+ 
+- f is the training list. the order should be same as the matrix's order.
+
+- k is the number of neighbor to judge the class.
+
+- o [:output:] 
+    summary output for contingency table. 
+    for the detailed file format, please see the description, [./fileformat](./fileformat/summary), and example in [../toy/result/TS1.l8.f1.k30.summary](../toy/result/TS1.l8.f1.k30.summary)
+    the example file is the output of l=8,f=1 and k=30
+
+STDOUT is 3 column output with k, number of True prediction and Accuracy ([../toy/result/TS1.l8.f1](../toy/result/TS1.l8.f1).
 	
 #### Parameter Optimization
 
@@ -205,7 +256,10 @@ Filtering is divided into 3 steps.
 ```
 
 ```{output}
-#l-mer  filt    k       nTP     Accuracy ## header. 
+#l-mer  filt    k       nTP     Accuracy ## header is not shown in the analysis.
+            ...
+            ...
+            ...
 6       5       10      1405    0.9367
 6       5       5       1406    0.9373
 8       1       50      1408    0.9387
@@ -225,7 +279,7 @@ Filtering is divided into 3 steps.
 ## Testing
 
 
-Test is almostly same as training, but some arguments are different from training.
+Testing is almostly same as training, but some arguments are different from training.
 
 
 ```
@@ -240,10 +294,16 @@ Test is almostly same as training, but some arguments are different from trainin
 	# jsd calculation between training set and testing set
 
 
-	for name in $(cat $LIST);
+	for l in 4 6 8;
 	do 
-		qsub -l mem_free=10G -S /usr/bin/perl $KNN4 -cwd -e ./err.log -o ./$DIR/knn+snps/l$l/f$f/jsd/$name.jsd 
-		ffpjsd2014 -p 6 -f $TRAINLIST ./$DIR/knn+snps/l$l/f$f/profile/$name.tmp -o
+		for f in 1 5 100;
+		do
+
+		for name in $(cat $LIST);
+		do 
+			qsub -l mem_free=10G -S /usr/bin/perl $KNN4 -cwd -e ./err.log -o ./$DIR/knn+snps/l$l/f$f/jsd/$name.jsd 
+			ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l$l/f$f/profile/$name.tmp -o
+		done
 	done
 
 	
@@ -252,7 +312,10 @@ Test is almostly same as training, but some arguments are different from trainin
 	cat ./TS1/knn+snps/l8/f1/jsd/* > ./TS1/knn+snps/l8/f1/snps.dist
 
 	# make jsd divergence matrix
+
 	perl jsd_mat_maker3.pl -f $TESTLIST,$LIST -m ./TS$i/knn+snps/l$l/f$f/snps.dist -b -n > ./TS$i/knn+snps/l$l/f$f/test_snps.$tst.jsd.tmp
+
+	## the command generate #TEST samples x #Train samples JS distance matrix
 
 ```
 

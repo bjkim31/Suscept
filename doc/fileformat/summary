@@ -1,0 +1,31 @@
+# sampleid = Real class
+# case     = prediction
+# count    = count
+# sorry about the confusion. I'll change the code.
+
+sampleid	case	count
+AFR	AFR	300
+AFR	AMR	0
+AFR	EAS	0
+AFR	EUR	0
+AFR	SAS	0
+AMR	AFR	10
+AMR	AMR	219
+AMR	EAS	2
+AMR	EUR	69
+AMR	SAS	0
+EAS	AFR	0
+EAS	AMR	0
+EAS	EAS	300
+EAS	EUR	0
+EAS	SAS	0
+EUR	AFR	0
+EUR	AMR	0
+EUR	EAS	0
+EUR	EUR	299
+EUR	SAS	1
+SAS	AFR	0
+SAS	AMR	0
+SAS	EAS	0
+SAS	EUR	4
+SAS	SAS	296

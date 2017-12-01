@@ -3,11 +3,16 @@
  │
  ├------ [ DOC ]
  │         │
- │         ├--- filetree.txt       : this file
- │         │
- │         ├--- fileformat.txt     : fileformat description
- │         │
- │         \--- tutorial.md        : Super-Population classification by kNN-Syntax method
+ │         ├--- filetree.txt          : this file
+ │         │  
+ │         │         
+ │         ├--- knn+snps.tutorial.md : Super-Population classification by kNN-Syntax method
+ │         │ 
+ │         \--- [fileformat]       : fileformat description
+ │                   │ 
+ │                    
+ │ 
+ │
  │
  ├------ [ bin ]  binary files are here.
  │	   │	
@@ -15,15 +20,15 @@
  │         │
  │         ├--- sort.sh            : generate filtered list of syntaxes for filtering purpose.
  │         │
- │         ├--- FIPfilt            : which generate filtered profile from whole-profile.
+ │         ├--- fipfilt            : which generate filtered profile from whole-profile.
  │         │
+ │         │--- fipmerge           : calculate frequency of syntaxes from FIP output.
  │         │
- │         │
- │         ├--- helloknn.R         : R script for k-NN from distance matrix.
+ │         ├--- helloknn.R         : R script for kNN clustering from distance matrix.
  │         │
  │         ├--- ffpjsd2014         : calculate JS divergence score
  │         │
- │         \--- get_accuracy_k.pl  :
+ │         \--- get_accuracy_k.pl  : Perl code for kNN clustering from distance matrix
  │
  ├------- [ toy ] : example data generated from G1K data.
  │          │
