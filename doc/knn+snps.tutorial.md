@@ -23,8 +23,8 @@ BJ Kim (airbj31@yonsei.ac.kr or airbj31@berkeley.edu)
     - [perform kNN](#perform-kNN)
       - [get_accuracy_k]()
     - [Results](#Results)
-      - [parameter optimization]()
-      - [contingency table]()
+      - [parameter optimization](#parameter optimization)
+      - contingency table
   - [Testing](#Testing)
 
 
@@ -296,7 +296,7 @@ do
 	for f in 1 5 100;
 	do
 		cat TS1/knn+snps/l$l/f$f/jsd/* > TS1/knn+snps/l$l/f$f/snps.dist	
-
+		perl ./bin/make_jsd_mat -f [:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l$l/f$f/snps.dist -b -n > ./TS1/knn+snps/l$l/f$f/snps.jsd.tmp
 	done
 done
 
@@ -333,10 +333,10 @@ arguments
 
 - o [:output:] 
     summary output for contingency table. 
-    for the detailed file format, please see the description, [./fileformat](./fileformat/summary), and example in [../toy/result/TS1.l8.f1.k30.summary](../toy/result/TS1.l8.f1.k30.summary)
+    for the detailed file format, please see the description, [./fileformat/summary](./fileformat/summary), and example in [../toy/result/TS1.l8.f1.k30.summary](../toy/result/TS1.l8.f1.k30.summary)
     the example file is the output of l=8,f=1 and k=30
 
-STDOUT is 3 column output with k, number of True prediction and Accuracy ([../toy/result/TS1.l8.f1](../toy/result/TS1.l8.f1).
+STDOUT is 3 column output with k, number of True prediction and Accuracy ([../toy/result/TS1.l8.f1](../toy/result/TS1.l8.f1)).
 	
 #### Parameter Optimization
 
