@@ -74,6 +74,7 @@ one important thing while conversion is the tagging. we put first few letter cha
 
 e.g) paste toy/g1k.affy6.chr22.fam toy/g1k.affy6.chr22.rename.fam
 
+```
 
 HG00096 HG00096 0 0 0 -9        EUR-HG00096 EUR-HG00096 0 0 0 -9
 HG00097 HG00097 0 0 0 -9        EUR-HG00097 EUR-HG00097 0 0 0 -9
@@ -85,12 +86,14 @@ HG00103 HG00103 0 0 0 -9        EUR-HG00103 EUR-HG00103 0 0 0 -9
 HG00105 HG00105 0 0 0 -9        EUR-HG00105 EUR-HG00105 0 0 0 -9
 HG00106 HG00106 0 0 0 -9        EUR-HG00106 EUR-HG00106 0 0 0 -9
 HG00107 HG00107 0 0 0 -9        EUR-HG00107 EUR-HG00107 0 0 0 -9
+
 ```
+
 "EUR" is tag for the sample's class
 
 
 
-``` 
+ 
 
 
 ## Training
