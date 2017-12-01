@@ -1,4 +1,6 @@
-# Tutorial for program Usage
+# Tutorial for kNN+SNPS-S pipeline
+
+I'm writing this document right now.
 
 # Author
 
@@ -10,12 +12,14 @@ BJ Kim (airbj31@yonsei.ac.kr / airbj31@berkeley.edu)
 - [Author](#Author)
 - [Table of Contents](#Table-of-contents)
 - [Procedure](#Procedure)
-  - [make plink ped file](#make-plink-ped-file)
-  - [make l-mer profiles](#make-l-mer-profile)
-  - [filtering](#filtering)
-  - [make filtered profiles](#make-filtered-profile)  
-  - [distance calculation](#distance calculation)
-    - [JS divergence score calculation](#JS divergence score calculation)
+  - [Make plink ped file](#make-plink-ped-file)
+  - [Make l-mer profiles](#make-l-mer-profile)
+  - [Filtering](#filtering)
+    - 1. [Make ]
+    - 2. [Make filtered Syntaxes list](#make-filtered-syntaxes-list)
+    - 3. [Make filtered profiles](#make-filtered-profile)  
+  - [distance calculation](#distance-calculation)
+    - [JS divergence calculation](#JS-divergence-calculation)
     - [make matrix](#make-matrix)
   - [perform kNN]
     - [get_accuracy_k.pl]()
@@ -73,25 +77,28 @@ We currently do not support binary ped file. so you must transform it to non-bin
 
 ```
 	mkdir -p TS1/knn+snps/l[:l-mer:] # make directory for workspace.
-        FIP -l [:l-mer:] -f [:g1k.TRAIN.list:] [:g1k-affy6-chr22.ped:] > TS1/knn+snps/l<l-mer>/snps.l[:l-mer].tmp>
+        FIP -l [:l-mer:] -f [:g1k.TRAIN.list:] [:g1k-affy6-chr22.ped:] > TS1/knn+snps/l[:l-mer:]/snps.l[:l-mer].tmp>
 ```
 
 - Parameters for FIP
 
-l, l-mer     : numeric value for length of SNP-Syntax
-f, file-list : list of individual ids to profile 
+  - l, l-mer     : numeric value for length of SNP Syntax
 
-the program 'FIP' read ped file and convert it to number format genotypes. to understand the output file, please see [../doc/fileformat/snps.l.tmp](../doc/fileformat/snps.l.tmp)
+  - f, file-list : list of individual ids to profile
+
+  - inputfile    : non-binary plink ped file. 
+
+the program 'FIP' read ped file and convert it to number format genotypes. to understand the output file, please see [../doc/fileformat/snps.lx.tmp](../doc/fileformat/snps.lx.tmp)
 
 
 ## filtering 
 
-Filtering is divided into 3 step.
+Filtering is divided into 3 steps.
 
   1. calculate the proportion of SNP-Syntaxes
 
 ```
-	fipmerge 
+	fipmerge TS1/knn+snps/l[:l-mer:].tmp > ./TS1/knn+snps/l[:l-mer:]/merged.snps.l[:l-mer:].tmp  
 
 ```
 
@@ -101,7 +108,7 @@ Filtering is divided into 3 step.
   2. make filtered SNP-Syntaxes list 
 
 ```
-	sort.sh
+	sort.sh [:dir:] [:l-mer:] [:LIST:]
 
 ```
 
@@ -109,11 +116,91 @@ Filtering is divided into 3 step.
 
   3. make filtered profile
 
-```
-	
-
 
 ```
+	mkdir -p TS1/knn+snps/l[:l-mer:]/f[:filter:]/profile
+	fipfilt ./$DIR/knn+snps/l[:l-mer:]/f[:filter:]/snps.bk.list ./TS1/knn+snps/l[:l-mer:]/snps.l$l.tmp ./TS1/knn+snps/l[:l-mer:]/f[:filter:]/profile [:l-mer:] 
+
+```
+
+## distance calculation
 
 
+### JS divergence calculation
+
+
+```
+	for name in $(cat $LIST);
+	do 
+		ffpjsd2014 -p 6 -f $LIST ./$DIR/knn+snps/l$l/f$f/profile/$name.tmp > DIR/knn+snps/l[:l-mer:]/f[:filter:]/jsd/$name.jsd
+	done
+
+```
+
+### make matrix
+
+
+```
+	cat TS1/knn+snps/l[:l-mer:]/f[:filter:]/jsd/* > TS1/knn+snps/l[:l-mer:]/f[:filter:]/snps.dist
 	
+
+```
+
+# perform kNN
+
+
+# Results
+	
+## Parameter Optimization
+
+
+```
+	for l in 4 6 8; 
+	do 
+		for f in 1 5 100; 
+		do 
+			awk -v l=$l -v f=$f 'BEGIN{OFS="\t"}{print l,f,$0}' TS1.l$l.f$f
+		 done
+	done | sort -k5g
+
+```
+
+```{output}
+#l      f       k       nTP     Accuracy
+6       5       10      1405    0.9367
+6       5       5       1406    0.9373
+8       1       50      1408    0.9387
+8       5       10      1408    0.9387
+8       1       20      1409    0.9393
+6       1       30      1412    0.9413
+8       1       40      1412    0.9413
+8       5       5       1413    0.9420
+8       1       30      1414    0.9427
+
+```
+
+
+- best performance is shown in l=8,f=1 and k=30
+ 
+
+## Testing
+
+
+Test is almostly same as training, but some arguments are different from training.
+
+
+```
+	# make profile of SNP Syntaxes
+	
+	# make filtered profile using training filtered syntax list
+
+	# jsd calculation between training set and testing set
+
+	# merge the jsd output 
+
+	# make jsd divergence matrix
+
+
+```
+
+
