@@ -1,0 +1,119 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+use Getopt::Long;
+use File::Basename;
+
+### initial variable declaration ################
+my $SCRIPT= basename($0);
+my $listfile=""; #initial value is null.
+my (%jsdhash,@arr,@arr2,$taxa_id,$len);
+my $matrix="";
+my $noname=0;
+my $nonumber=0;
+my $nLIST=0;
+#########################################
+
+GetOptions (
+   "list|f=s"=>\$listfile,
+   "matrix|m=s"=>\$matrix,
+   "help|h"=>\&help,
+   "version"=>\&version,
+   "noname|n"=>sub {$noname=1;},
+   "nonumber|b"=>sub {$nonumber=1;}
+);
+
+my @LIST=split(/,/,$listfile);
+
+my @LISTFILE; ## list of taxas which denotes each row and column of distance matrix.
+
+if($#LIST<0) { die "You need at least one list file to generate distance matrix.\n";}
+elsif($#LIST<2)
+{
+	if($#LIST==0) {&genARR($LIST[0],0);@{$LISTFILE[1]}=@{$LISTFILE[0]};$nLIST=1;}
+   else 	{ for(my $i=0; $i<=$#LIST; $i++) {&genARR($LIST[$i],$i);} }
+}
+
+#if($#LIST==0) {$LIST[1]=$LIST[0];}
+#elsif($#LIST==1)
+#if($#LIST>1) { die "Unallowed number of list-files.\n";}
+
+open(IN, $matrix) or die "Can't open the matrix file named \"$matrix\"\n$!\n";
+while(<IN>)
+{
+   chomp($_);
+   my @arr=split(/[\t\s]+/,$_);
+   if(exists($jsdhash{$arr[0]}{$arr[1]})) {}
+   else {$jsdhash{$arr[0]}{$arr[1]}=$arr[2];}
+}
+close(IN);
+
+if($nonumber==0)
+{
+	if($#LIST==0) {print $#{$LISTFILE[0]}+1,"\n";}
+	else {my $a=($#{$LISTFILE[0]}+1)*($#{$LISTFILE[1]}+1);print $a,"\n";}
+}
+
+## work well
+
+for(my $i=0;$i<=$#{$LISTFILE[0]};$i++)
+{
+
+   if($noname==0)
+   {
+   $len=length($LISTFILE[0][$i]);
+
+   if($len<10)
+   {$taxa_id=$LISTFILE[0][$i]." "x(10-$len);}
+   elsif($len==10)
+   {$taxa_id=$LISTFILE[0][$i];}
+   else
+   {$taxa_id=substr($LISTFILE[0][$i],0,10);}
+
+   print $taxa_id;
+   }
+
+   for(my $j=0;$j<=$#{$LISTFILE[1]};$j++)
+   {
+      if($i==$j and $nLIST==1) {printf('%.2e',0);}
+      elsif(exists($jsdhash{$LISTFILE[1][$j]}{$LISTFILE[0][$i]}))
+      {
+         printf('%.4e',$jsdhash{$LISTFILE[1][$j]}{$LISTFILE[0][$i]});
+      } elsif (exists($jsdhash{$LISTFILE[0][$i]}{$LISTFILE[1][$j]}))
+               {printf('%.4e',$jsdhash{$LISTFILE[0][$i]}{$LISTFILE[1][$j]});
+		}	
+      else {
+	if($LISTFILE[0][$i] eq $LISTFILE[1][$j]) {printf('%.4e','0');}
+	else {print "\nUNKNOWN ERR\n $LISTFILE[1][$i]x $LISTFILE[1][$j]";exit;
+	}}
+      print " " unless ($j==$#arr);
+   }
+   print "\n";
+}
+
+
+
+
+
+### SUBROUTINES ###
+
+sub genARR()
+{
+	my $FILE=shift @_;
+	my $ni=shift @_;
+	open (IN,'<',$FILE) or die "You need train or test list for further process$!\n";
+	while(<IN>)
+	{
+		chomp($_);
+		push(@{$LISTFILE[$ni]},$_);
+	}
+	close(IN);
+}
+sub version()
+{
+	print "Version History\n";
+	print "2014.2.7. add some features about multi-list function. So, you can create n(A)x n(B) matrix now.\n"
+
+
+}
