@@ -1,10 +1,8 @@
 # Tutorial for kNN+SNP-Ss pipeline
 
-I'm writing this document right now.
-
 # Author
 
-BJ Kim (airbj31@yonsei.ac.kr / airbj31@berkeley.edu)
+BJ Kim (airbj31@yonsei.ac.kr or airbj31@berkeley.edu)
 
 # Table of Contents
 
