@@ -426,18 +426,10 @@ fipfilt.pl ./TS1/knn+snps/l8/f1/snps.bk.list ./TS1/knn+snps/l8/test_.snps.l8.tmp
 # jsd calculation between training set and testing set
 
 
-for l in 4 6 8;
+for name in $(cat [:PATH/TO/g1k.TEST.list:]);
 do 
-	for f in 1 5 100;
-	do
-
-		for name in $(cat $LIST);
-		do 
 			ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l$l/f$f/profile/$name.tmp -o > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
-		done
-	done
 done
-
 	
 # merge the jsd output 
 	
