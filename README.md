@@ -46,4 +46,4 @@ No installation required. however following programs/packages are required to ru
 
 # Tutorial
 
-- please see [./doc/knn+SNPS-s.tutorial.md](./doc/knn+SNPS-s.tutorial.md) for the procedure of kNN+SNPS-s method 
+- please see [./doc/knn+SNPS-s.tutorial.md](./doc/knn+snps.tutorial.md) for the procedure of kNN+SNPS-s method 
