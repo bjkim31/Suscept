@@ -66,37 +66,54 @@ the data contains 2457 samples and 11813 SNPs.
 We currently do not support binary ped file. so you must transform it to non-binary plink files :
 
 ```
-        plink --bfile <:Path and prefix of binary plink:> --recode --out <:outfile:>
+        plink --bfile [:g1k.affy6.chr22:] --recode --fam [:g1k.affy6.chr22.rename.fam:] --out [:g1k-affy6-chr22:]
 ```
 
 ## Make l-mer profiles
 
 ```
-        FIP -l [:l-mer:] -f [:g1k.TRAIN.list:] [:g1k.TEST.list:] > <output file: e.g) snps.l<l-mer>.tmp>
+	mkdir -p TS1/knn+snps/l[:l-mer:] # make directory for workspace.
+        FIP -l [:l-mer:] -f [:g1k.TRAIN.list:] [:g1k-affy6-chr22.ped:] > TS1/knn+snps/l<l-mer>/snps.l[:l-mer].tmp>
 ```
+
+- Parameters for FIP
 
 l, l-mer     : numeric value for length of SNP-Syntax
 f, file-list : list of individual ids to profile 
 
-the program FIP read ped file and convert it to number format genotypes. to understand the output filem please see [../doc/fileformat/snps.l.tmp](../doc/fileformat/snps.l.tmp)
+the program 'FIP' read ped file and convert it to number format genotypes. to understand the output file, please see [../doc/fileformat/snps.l.tmp](../doc/fileformat/snps.l.tmp)
 
-[ Algorithm ]
 
-[ 1 ]. Read IID/FAMILY file
-[ 2 ]. Read every SNPs and convert it to numbers.
-	- Rabin-Karp hash was introduced to reduce the
-	  e.g) AA=>0 ; AC/CA => 1 ;
-	- 
-[ 3 ]. 
-[ 4 ]. 
-[ 5 ]. 
-[ 6 ].
+## filtering 
+
+Filtering is divided into 3 step.
+
+  1. calculate the proportion of SNP-Syntaxes
+
+```
+	fipmerge 
 
 ```
 
+ the output is 2 column textfile containing SNP-Syntaxes and its proportion (percentage)
+
+
+  2. make filtered SNP-Syntaxes list 
+
+```
+	sort.sh
+
 ```
 
-## Results
+ sort.sh is simple 'awk' command which extract first column based on the value of the second column of `fipmerge`'s output. the output is used for the SNP-Syntax filtering from the SNP-Syntax profile ('snps.l[:l-mer:].tmp) 
+
+  3. make filtered profile
+
+```
+	
+
+
+```
 
 
 	
