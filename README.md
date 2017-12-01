@@ -11,19 +11,20 @@ Author - BJ KIM (airbj31@yonsei.ac.kr or airbj31@berkeley.edu)
     - [Requirement](#Requirement)
     - [directory/file tree](#Directory-and-File-tree)
 - [Tutorial/Procedure](#tutorial)
+- [advanced usage](#advanced-usage)
+- [TL;DR](#TL;DR)
 
 # Introduction
 
 The original method is developed by MS KIM and S-H Kim [(PNAS, 2014)](http://www.pnas.org/content/111/5/1921.abstract) and *k*NN-Syntax script in the paper is rewritten by BJ KIM (not published yet.)
-
-currently, the page and repository is under construction. I'll notice here if I finish all the proper jobs to run the code.
 
 # Installation
 
 Simply download the files or try following command in unix-like environemnt.
 
 ```
-        git clone https://github.com/bjkim31/Suscept.git
+git clone https://github.com/bjkim31/Suscept.git
+
 ```
 
 ## Requirement 
@@ -32,13 +33,14 @@ No installation required. however following programs/packages are required to ru
 
 - [perl 5.8 or higher](https://www.perl.org/) 
     - [Inline::C](http://search.cpan.org/~tinita/Inline-C-0.78/lib/Inline/C.pod) is required for JS divergence score
-- [R](https://cran.r-project.org/) - R is used for graphics or *k*NN classification after generating JS divergence score matrix.
-    - [tidyr](https://cran.r-project.org/web/packages/tidyr/)
-    - [dplyr](https://cran.r-project.org/web/packages/dplyr/)
-    - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/) packages 
 - [awk/gawk](https://www.gnu.org/software/gawk/)
 - [plink](https://www.cog-genomics.org/plink2)
 - [open grid scheduler](http://gridscheduler.sourceforge.net/) (a.k.a :sun grid scheduler) is highly recommended for speed but not essential.
+
+- [R](https://cran.r-project.org/) - R is used for graphics or *k*NN classification after generating JS divergence score matrix
+    - [tidyr](https://cran.r-project.org/web/packages/tidyr/)
+    - [dplyr](https://cran.r-project.org/web/packages/dplyr/)
+    - [ggplot2](https://cran.r-project.org/web/packages/ggplot2/) packages 
 
 ## Directory and File tree
 
@@ -46,4 +48,11 @@ No installation required. however following programs/packages are required to ru
 
 # Tutorial
 
-- please see [./doc/knn+SNPS-s.tutorial.md](./doc/knn+snps.tutorial.md) for the procedure of kNN+SNPS-s method 
+- please see [./doc/knn+snps.tutorial.md](./doc/knn+snps.tutorial.md) for the procedure of kNN+SNP-Ss method 
+
+# Advanced Usage
+
+
+# TL;DR
+
+- I have a one/few-step-script for the multi-step tutorial.

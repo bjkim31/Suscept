@@ -16,20 +16,19 @@ BJ Kim (airbj31@yonsei.ac.kr / airbj31@berkeley.edu)
   - [Training](#Training)
     - [Make l-mer profile](#make-l-mer-profile)
     - [Filtering](#filtering)
-      - 1. [calculate frequency of SNP Syntaxes](#calculate-frequency-of-SNP-Syntaxes)
-      - 2. [Make filtered Syntaxes list](#make-filtered-syntaxes-list)
-      - 3. [Make filtered profiles](#make-filtered-profile)  
+      - [calculate frequency of SNP Syntaxes](#calculate-frequency-of-SNP-Syntaxes)
+      - [Make filtered Syntaxes list](#make-filtered-syntaxes-list)
+      - [Make filtered profiles](#make-filtered-profile)  
     - [distance calculation](#distance-calculation)
       - [JS divergence calculation](#JS-divergence-calculation)
       - [make matrix](#make-matrix)
-    - [perform kNN]
-      - [get_accuracy_k.pl]()
+    - [perform kNN](#perform-kNN)
+      - [get_accuracy_k]()
     - [Results](#Results)
       - [parameter optimization]()
       - [contingency table]()
   - [Testing](#Testing)
 
-- [TL;DR script](#TL;DR)
 
 # Procedure
 
@@ -46,11 +45,11 @@ Data files
 - [g1k.TRAIN.list](./toy/g1k.TRAIN.list) - training files (equivalent for individual id in .fam file)
 - [g1k.TEST.list](./toy/g1k.TEST.list)   - testing files  (equivalent for individual id in .fam file)
 
-The sample data is generated from [G1K vcf files]() located in the ncbi repository.
+The sample data is generated from [G1K vcf files](ftp://ftp.ncbi.nlm.nih.gov/1000genomes/ftp/release/20130502/).
 
   1. download the vcf files.
 
-  2. removing INDEL variants by [vcftools]()
+  2. removing INDEL variants by [vcftools](https://vcftools.github.io/)
 
   3. removing multipositional SNPs and some conflicts (different genotypes in same position)
 
@@ -70,7 +69,8 @@ We currently do not support binary ped file. so you must transform it to non-bin
 
 
 ```
-        plink --bfile [:PATH/TO/g1k.affy6.chr22:] --recode --fam [:PATH/To/g1k.affy6.chr22.rename.fam:] --out [:new/PATH/TO/g1k-affy6-chr22:]
+plink --bfile [:PATH/TO/g1k.affy6.chr22:] --recode --fam [:PATH/To/g1k.affy6.chr22.rename.fam:] --out [:new/PATH/TO/g1k-affy6-chr22:]
+
 ```
 
 
@@ -97,11 +97,11 @@ in this tutorial, we suppose followings
  to understand the output file, please see [../doc/fileformat/snps.lx.tmp](../doc/fileformat/snps.lx.tmp)
 
 ```
-	for l in 4 6 8;
-	do
-		mkdir -p TS1/knn+snps/l[:l-mer:]  # make directory for workspace.
-        	FIP -l $l -f [:PATH/TO/g1k.TRAIN.list:] [:PATH/TO/g1k-affy6-chr22.ped:] > TS1/knn+snps/l$l/snps.l$l.tmp>
-	done
+for l in 4 6 8;
+do
+	mkdir -p TS1/knn+snps/l[:l-mer:]  # make directory for workspace.
+       	FIP -l $l -f [:PATH/TO/g1k.TRAIN.list:] [:PATH/TO/g1k-affy6-chr22.ped:] > TS1/knn+snps/l$l/snps.l$l.tmp>
+done
 
 ```
 
@@ -122,31 +122,37 @@ Filtering is divided into 3 steps.
 #### calculate frequency of SNP Syntaxes
 
 ```
-	for l in 4 6 8;
-	do
-		fipmerge TS1/knn+snps/l$l.tmp > ./TS1/knn+snps/l$l/merged.snps.l$l.tmp  
-	done
+
+for l in 4 6 8;
+do
+	fipmerge TS1/knn+snps/l$l.tmp > ./TS1/knn+snps/l$l/merged.snps.l$l.tmp  
+done
+
 ```
 
- the output is 2 column textfile containing SNP-Syntaxes and its proportion (percentage)
+ the output is 2 column textfile containing SNP-Syntaxes and its frequency [./fileformat/merged.snps.lx.tmp]](./fileformat/merged.snps.lx.tmp)
 
 
 #### make filtered SNP-Syntaxes list 
 
 ```
-	for l in 4 6 8;
+for l in 4 6 8;
+do
+	for f in 1 5 100;
 	do
-		for f in 1 5 100;
-		do
-			sort.sh TS1 $l $f [:PATH/TO/g1k.TRAIN.list:]
-		done
+		sort.sh TS1 $l $f [:PATH/TO/g1k.TRAIN.list:]
 	done
+done
 
 ```
 
  sort.sh is simple 'awk' command which extract first column based on the value of the second column of `fipmerge`'s output. 
 
+ the usage is `sort.sh [:DIR:] [:l-mer:] [:filtering:] [:list file:]'
+
  the output is used for the SNP-Syntax filtering from the SNP-Syntax profile ('snps.l[:l-mer:].tmp) 
+
+ if you use another output name in prior step, you must change sort.sh to run the code since sort.sh oly read `[:DIR:]/knn+snps/l$l/f$f/merged.snps.l$l.tmp`
 
 
 #### make filtered profile
@@ -154,15 +160,14 @@ Filtering is divided into 3 steps.
 
 
 ```
-	for l in 4 6 8;
+for l in 4 6 8;
+do
+	for f in 1 5 100;
 	do
-		for f in 1 5 100;
-		do
-
-			mkdir -p TS1/knn+snps/l$l/f$f/profile
-			fipfilt ./TS1/knn+snps/$l/f$f/snps.bk.list ./TS1/knn+snps/l$l/snps.l$l.tmp ./TS1/knn+snps/l$l/f$f/profile $l
-		done
+		mkdir -p TS1/knn+snps/l$l/f$f/profile
+		fipfilt ./TS1/knn+snps/$l/f$f/snps.bk.list ./TS1/knn+snps/l$l/snps.l$l.tmp ./TS1/knn+snps/l$l/f$f/profile $l
 	done
+done
 
 ```
 
@@ -173,17 +178,17 @@ Filtering is divided into 3 steps.
 
 
 ```
-	mkdir BKsource;
+mkdir BKsource;
 
-	for l in 4 6 8;
-	do 
-		for f in 1 5 100;
-		do
-			for name in $(cat [:PATH/TO/g1k.TRAIN.list:]);
-			do 
+for l in 4 6 8;
+do 
+	for f in 1 5 100;
+	do
+		for name in $(cat [:PATH/TO/g1k.TRAIN.list:]);
+		do 
 				ffpjsd2014 -p 6 -f $LIST ./TS1/knn+snps/l$l/f$f/profile/$name.tmp > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
-			done
-	done
+		done
+done
 
 ```
 
@@ -197,31 +202,34 @@ compiling is automatically done if you run the perl script however you need BKso
 
 
 ```
-	for l in 4 6 8;
-	do 
-		for f in 1 5 100;
-		do
-			cat TS1/knn+snps/l$l/f$f/jsd/* > TS1/knn+snps/l$l/f$f/snps.dist	
+for l in 4 6 8;
+do 
+	for f in 1 5 100;
+	do
+		cat TS1/knn+snps/l$l/f$f/jsd/* > TS1/knn+snps/l$l/f$f/snps.dist	
 
-		done
 	done
+done
+
 ```
 
 ### perform kNN
 
-kNN clustering is performed by perl ([get_accuracy_k.pl](../bin/get_accuracy_k.pl)) or R ([helloKNN.R](../bin/hellokNN.R))
+kNN clustering is performed by perl ([get_accuracy_k](../bin/get_accuracy_k)) or R ([helloKNN.R](../bin/hellokNN.R))
+
+the R code is not used in this tutorial.
 
 ```
-	for l in 4 6 8;
+for l in 4 6 8;
+do
+	for f in 1 5 100;
 	do
-		for f in 1 5 100;
+		for k in 1 5 10 20 30 40 50 60 70 80 90 100;
 		do
-			for k in 1 5 10 20 30 40 50 60 70 80 90 100;
-			do
-				perl ~/devel/get_accuracy_k.pl -i 3 -f [:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l$l/f$f/snps.jsd.tmp -k $k -o opt/TS$DIR.l$lmer.f$freq.k$i.summary >> ./opt/TS$DIR.l$lmer.f$freq;		
-			done
+			perl ~/devel/get_accuracy_k.pl -i 3 -f [:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l$l/f$f/snps.jsd.tmp -k $k -o opt/TS$DIR.l$lmer.f$freq.k$i.summary >> ./opt/TS$DIR.l$lmer.f$freq;		
 		done
 	done
+done
 
 ```
 
@@ -245,15 +253,16 @@ STDOUT is 3 column output with k, number of True prediction and Accuracy ([../to
 
 
 ```
-	for l in 4 6 8; 
+for l in 4 6 8; 
+do 
+	for f in 1 5 100; 
 	do 
-		for f in 1 5 100; 
-		do 
-			awk -v l=$l -v f=$f 'BEGIN{OFS="\t"}{print l,f,$0}' TS1.l$l.f$f
-		 done
-	done | sort -k5g
+		awk -v l=$l -v f=$f 'BEGIN{OFS="\t"}{print l,f,$0}' TS1.l$l.f$f
+	 done
+done | sort -k5g
 
 ```
+**output of the file**
 
 ```{output}
 #l-mer  filt    k       nTP     Accuracy ## header is not shown in the analysis.
@@ -281,47 +290,59 @@ STDOUT is 3 column output with k, number of True prediction and Accuracy ([../to
 
 Testing is almostly same as training, but some arguments are different from training.
 
+the parameter used is l=8,f=1 and k=30 since it shows the best performance.
+
 
 ```
-	# make profile of SNP Syntaxes
+# make profile of SNP Syntaxes
 
-	FIP.pl -f [:PATH/to/g1k.TEST.list:] -l 8 [:PATH/TO/g1k-affy6-chr22.ped:] # l=8 since our best performance when we use l=8. 
+FIP.pl -f [:PATH/to/g1k.TEST.list:] -l 8 [:PATH/TO/g1k-affy6-chr22.ped:]  
 	
-	# make filtered profile using training filtered syntax list
+# make filtered profile using training filtered syntax list
 
-	fipfilt.pl ./$DIR/knn+snps/l$l/f$f/snps.bk.list ./$DIR/knn+snps/l$l/test_$CASE''.snps.l$l.tmp ./$DIR/knn+snps/l$l/f$f/profile $l
+fipfilt.pl ./$DIR/knn+snps/l$l/f$f/snps.bk.list ./$DIR/knn+snps/l$l/test_$CASE''.snps.l$l.tmp ./$DIR/knn+snps/l$l/f$f/profile $l
 
-	# jsd calculation between training set and testing set
+# jsd calculation between training set and testing set
 
 
-	for l in 4 6 8;
-	do 
-		for f in 1 5 100;
-		do
+for l in 4 6 8;
+do 
+	for f in 1 5 100;
+	do
 
 		for name in $(cat $LIST);
 		do 
-			qsub -l mem_free=10G -S /usr/bin/perl $KNN4 -cwd -e ./err.log -o ./$DIR/knn+snps/l$l/f$f/jsd/$name.jsd 
-			ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l$l/f$f/profile/$name.tmp -o
+			ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l$l/f$f/profile/$name.tmp -o > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
 		done
 	done
+done
 
 	
-	# merge the jsd output 
+# merge the jsd output 
 	
-	cat ./TS1/knn+snps/l8/f1/jsd/* > ./TS1/knn+snps/l8/f1/snps.dist
+cat ./TS1/knn+snps/l8/f1/jsd/* > ./TS1/knn+snps/l8/f1/snps.dist
 
-	# make jsd divergence matrix
+# make jsd divergence matrix
+# the command generate #TEST samples x #Train samples JS distance matrix
 
-	perl jsd_mat_maker3.pl -f $TESTLIST,$LIST -m ./TS$i/knn+snps/l$l/f$f/snps.dist -b -n > ./TS$i/knn+snps/l$l/f$f/test_snps.$tst.jsd.tmp
+perl jsd_mat_maker3.pl -f $TESTLIST,$LIST -m ./TS$i/knn+snps/l$l/f$f/snps.dist -b -n > ./TS$i/knn+snps/l$l/f$f/test_snps.$tst.jsd.tmp
 
-	## the command generate #TEST samples x #Train samples JS distance matrix
+
+# calculate testing accuracy
+
+get_accuracy_k -i 3 -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l8/f1/test_snps.jsd.tmp -k 30 -o opt/TS$DIR.l8.f1.k30.result
 
 ```
 
-# TL;DR scipt
+**output**
 
-- I'm also reviewing one or few step scripts for training/testing.
+```
+#k	nTP     Accuracy
+30      936     0.9781
 
-- I hope people use it easily.
+```
+- Testing accuracy is 97.81%.
 
+for further analysis, we use R script. 
+
+I'll introduce it as soon as possible
