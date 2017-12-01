@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Getopt::Long;
+## Script Information
+my $author="Byungju Kim";
+my $version="0.2";
+
+
+## Initial Variables ##
+my $lmer=3;
+my $code=0;
+my $listfile="";
+my %LH=();my %GH=();
+my $base=10;  
+## GetOpt
+
+GetOptions (
+    "list-file|f=s"=>\$listfile,
+    "lmer|l=s"=>\$lmer,
+    "code|c"=>sub {$code=1;},
+    "version|v"=>\&version,
+    "usage|h"=>\&usage
+);
+
+if($#ARGV<0) {&usage;exit;}
+elsif($listfile ne "" and $#ARGV>0) {&usage;die "\nERROR code 02 : '-f/-list-file' option\n";}
+else {
+	## generate list hash.
+		open IN,'<',$listfile;
+
+		while(<IN>)
+		{
+			chomp();
+			$LH{$_}=1;
+		}
+	}
+
+
+## generate genotype Hash ##
+if($code==1) {
+		$base=3;
+		%GH=(11=>0,12=>1,21=>1,22=>2);
+		if(exists($GH{11})){} else {exit;}
+} else {
+
+%GH=(
+      "AA" => 0, "AC" => 4, "AG" => 5, "AT" => 6,
+		"CA" => 4, "CC" => 1, "CG" => 7, "CT" => 8,
+		"GA" => 5, "GC" => 7, "GG" => 2, "GT" => 9,
+		"TA" => 6, "TC" => 8, "TG" => 9, "TT" => 3
+   );
+}
+
+open IN,'<',$ARGV[0] || die "Failed: $!\n";
+my $tLine=0;
+
+my $numformat = "%.".$lmer."d"; 
+
+while(<IN>)
+{
+	
+	chomp($_);
+
+	$_ =~ /(^[\w\d\-\_\.]+)[\t\s]([\-\_\w\d\.]+)/;
+
+
+	if(exists($LH{$2}) or $listfile eq "")
+	{
+		$tLine++;
+		print STDERR $tLine," : ",$1,"\t",$2,"\n";
+		print $1,"\t",$2,"\t";
+
+	my $ind=0;
+	my $RKhash=0;
+	my $hashlen=0;
+
+	while($_ =~ /\s([ACGT])\s([ACGT])/g)
+	{
+		my $text;
+		if($code==1) {$text=$1*10+$2;} else {$text=$1.$2;}
+
+		unless(exists($GH{$text})) { print "\nERROR\tprint\t$text\t$1\t$2";exit;}
+		
+		$RKhash=$RKhash*$base+$GH{$text};
+		$hashlen++;
+
+		if($hashlen > $lmer) {$RKhash=$RKhash % ($base ** $lmer);$hashlen--;}
+		if($hashlen < $lmer) {}
+		elsif ($hashlen == $lmer) 
+		{
+			#print $ind*10**$lmer+$RKhash,"\n"
+			print $ind-$lmer+1; ## Index start with 0+hash
+			print sprintf($numformat, $RKhash);
+			print "\t";
+		} 
+		else {print "EROR","\n";exit;}	
+		$ind++;
+	}
+	print "\n";
+	}
+}
+
+sub usage()
+{
+	print "fip -f [:filelist:] -l [:length of word:] [:ped file:]\n";
+	exit;
+}
+
+sub version()
+{
+        my $vinfo = <<END;
+
+FIP Version $version by $author.
+
+==Patch Note==
+
+version 0.1
+- first release
+
+11/24/2014 - version 0.2
+           - file-handle of Output was changed from append to overwrite.
+END
+
+        print $vinfo,"\n";exit;
+}
+

@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+use strict;
+my %hash;
+
+open IN,'<', $ARGV[0]; #profiled file
+
+my $precision=16;
+my $numformat="%.".$precision."e";
+my $tvalue=0;
+
+while(<IN>)
+{
+	chomp($_);
+	my @arr=split(/\t/,$_);
+	for(my $i=2;$i<=$#arr;$i++)
+	{
+		if(exists($hash{$arr[$i]})) {$hash{$arr[$i]}++;}
+		else {$hash{$arr[$i]}=1;}
+	}
+	$tvalue++;
+}
+
+foreach my $key ( sort {$a <=> $b} keys %hash) 
+{
+	print $key,"\t",sprintf($numformat, $hash{$key}/$tvalue),"\n"; 
+}

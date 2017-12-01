@@ -1,0 +1,346 @@
+#!/usr/bin/env perl
+
+BEGIN { push @INC,"/compgen1/bjkim/perl5/lib/perl5"; }
+
+
+use Getopt::Long;
+use File::Basename;
+use warnings;
+##use Inline C;
+use Inline C => 'DATA',
+	   DIRECTORY => 'BKsource',
+	   NAME => 'BK::jsd';
+#	   DISABLE => 'AUTONAME';
+
+
+
+
+use strict;
+
+### Information parameter
+my $author="BJ Kim";
+my $year="2012";
+my $email="airbj31\@hanmail.net";
+my $version="0.3";
+
+### Initial Variable Declaration
+	my $SCRIPT = basename($0);
+	my $listfile=""; #initial value is null.
+	my $pk=0;
+	my $precision=2;
+	my $target;
+	my $check=0;
+	my $num=0;
+	my @listarr;
+	my (@arr,@ckey,@cval);
+	my @tkey;
+	my @tval;
+	my $nTAR;
+	my $nCON;
+	my $nonlist=0;
+	my $vsall=0;
+## GetOpt - Initial Variables ##
+
+## etc-variales 
+	my ($jindex,$path);
+
+### GetOpts 
+
+GetOptions (
+	"print-Dif|d"=>sub {$pk=1},
+	"precision|p=s"=>\$precision,
+	"1vsall|o"=>sub {$vsall=1},
+	"list-file|f=s"=>\$listfile,
+	"nonlist|n"=>sub {$nonlist=1},
+	"help|h"=>\&help,
+	"verseion|v"=>\&version
+);
+
+### check ARGV
+
+if($#ARGV<0) {&usage;exit;}
+if($listfile ne "" and $#ARGV>0) 
+	{&usage;die "\nERROR code 02 : '-f/-list-file' option\n";}
+
+my $inputfile = shift @ARGV;
+
+my $numformat = "%.".$precision."e"; 
+
+## first input-file.
+my ($file1,$dir1,$ext1)=fileparse($inputfile,qr/\..*/);
+
+open IN,'<',$inputfile or die "can't open file :: $inputfile";
+
+while(<IN>)
+{
+	chomp($_);
+	@arr=split("\t",$_);
+	push(@ckey, $arr[0]);
+	push(@cval, sprintf($numformat,$arr[1]));
+}
+	my $ntCON = $#ckey;
+close(IN);
+
+
+## make list-file array and check the file-list ##
+	if($vsall==1)
+	{
+		if($listfile ne "")
+		   {		  
+				open IN,'<',$listfile or die "Can't read list-file :: $listfile\n";
+				while(my $line = <IN>)
+				{
+					chomp($line);
+					push(@listarr,$line);
+				}
+				   
+		   }
+		else 
+		   {die "ERROR code 99 : At least, You need list-file to use this -o option.\n";}
+	} elsif($vsall==0)
+	{
+	if($listfile ne "")
+	{
+		open IN,'<',$listfile or die "Can't read list-file :: $listfile\n";
+
+		while(my $line = <IN>)
+		{
+			chomp($line);
+			if($nonlist==0)
+			{		
+					if($check==1){push(@listarr, $line);}
+					elsif($line eq $file1 or $line.".".$ext1 eq $file1) {$check=1;next;}
+			} else {push(@listarr,$line);}
+		}
+	} else 
+		{
+			if($#ARGV < 0) { die "ERROR code 01 : At least, You need 2 file to compare.\n";}
+			else {@listarr=@ARGV;}
+		}
+	}
+close(IN);
+
+
+if($pk==1)
+{
+	if(-d $dir1."pairwise"){}
+	elsif(-f $dir1."pairwise"){die "ERROR code 00 : ",$dir1,"pairwise must be directory\n"}
+	else {mkdir($dir1."pairwise");}
+}
+
+## main program
+
+while ($#listarr > -1)
+{
+	my $i=0;
+	$target = shift @listarr;
+
+	### target check ( dir | ext | filename )
+	my ($file2,$dir2,$ext2)=fileparse($target,qr/\..*/);
+
+	if($ext2 eq "") {$ext2 = $ext1;}
+	if($dir2 eq "\.\/" or $dir2 eq "") {$dir2 = $dir1;}
+
+	$target = $dir2.$file2.$ext2;
+	if(&checkfile($target)==1) {next;}
+	
+
+	# variables declarization
+	my $jvalue = 0;
+	my $sum = 0;
+
+	#when print pairwise option is on, directory "pairwise" is created.
+
+	if($pk==1)
+	{
+		$path=$dir1."pairwise/".$file1."-".$file2;
+		open(WFH,'>>',$path);
+	}
+
+	@tkey=();
+	@tval=();
+
+	open TAR,'<', $target or die "Can't open target file, $file2 :: $!\n";
+
+	while(<TAR>)
+	{
+		chomp($_);
+		@arr=split("\t",$_);
+
+		push(@tkey, $arr[0]);
+		push(@tval,sprintf($numformat,$arr[1]));
+	}
+	close(TAR);
+
+	my $ntTAR=$#tkey;
+	
+	$i=0;
+	my $j=0;
+
+	while($i <= $ntCON || $j <= $ntTAR)
+	{
+		($jvalue,$i,$j)= &checkindex($i,$ntCON,$j,$ntTAR);
+
+		$sum=$sum+$jvalue;
+
+#		print $i,"/",$ntCON," ",$j,"/",$ntTAR," ",$sum,"\n";
+
+	}
+		
+	print $file1,"\t",$file2,"\t";
+	printf($numformat,$sum);
+	print "\n";
+	if($pk ==1) { close(WFH);}
+	close(TAR);
+}
+
+
+### variables initialization ##
+@cval=();
+@ckey=();
+
+
+#### Subroutines ####
+
+sub checkindex()
+{
+		#control_index, control_value, target_index, target_value
+		my $iIND = shift;
+		my $iCON = $ckey[$iIND];
+		my $vCON = $cval[$iIND];
+		$nCON = shift;
+		my $jIND = shift;
+		my $iTAR = $tkey[$jIND];
+		my $vTAR = $tval[$jIND];
+		$nTAR = shift;	
+
+		my $kl=0;	
+
+		if($iIND <= $nCON && $jIND <= $nTAR)
+		{
+			if($iCON < $iTAR || $nTAR < $jIND )
+			{
+				$kl = &jsd($vCON,0);
+
+				# For debug
+				# print $iIND,"(",$iCON,")  ",$jIND,"(",$iTAR,") A 0 ",$kl,"\n";
+
+				$iIND++;
+			}elsif($iCON == $iTAR)
+			{
+				$kl = &jsd($vCON,$vTAR);
+
+				#for Debug
+				# print $iIND,"(",$iCON,")  ",$jIND,"(",$iTAR,") A B ",$kl,"\n";
+
+				$iIND++;
+				$jIND++;
+		}elsif($iCON > $iTAR || $nCON < $iIND )
+		{
+			$kl = &jsd(0,$vTAR);
+				
+				#for debug
+				# print $iIND,"(",$iCON,")  ",$jIND,"(",$iTAR,") 0 B ",$kl,"\n";
+
+			$jIND++;
+		}
+	}
+	 else {
+		if(defined($iCON)) {$kl=&jsd($vCON,0);}
+		elsif(defined($iTAR)) {$kl=&jsd(0,$vTAR); }
+		$jIND++;
+		$iIND++;
+	}
+
+	return $kl,$iIND,$jIND;
+}
+
+
+sub checkfile
+{
+	$_ = shift;
+	if(-s $_ == 0) {print "$_ File Size is zero\n";return 1;}
+	else {return  0;}
+}
+
+sub usage
+{
+	print "usage::",$SCRIPT," [option] [file]\n";
+}
+
+
+sub PdIF # $pk
+{
+	my $chck = shift;
+	my $jind = shift;
+	my $jval = shift;
+
+	if($chck == 1) {
+				print WFH $jind,"\t";
+				printf WFH ('%.2e',$jval);
+				print WFH "\n";
+	}
+}
+
+sub version 
+{
+	my $vinfo = <<END;
+
+FFPJSD Version $version by $author.
+
+==Patch Note==
+
+version 0.1 
+- first release
+
+version 0.2 
+- add Rabin-karp hash-theme.
+
+version 0.3 
+- add inline:C module to calculate JSD faster.
+
+10.29.2013 : version 0.4
+
+fix minor error which distance exceed 1.(order-based error)
+add precision-option
+
+version 0.5
+10.29.2013 : add t option to run file format.
+
+version 0.6 
+END
+
+	print $vinfo,"\n";exit;
+}
+
+
+__END__
+__C__
+# include <math.h>
+
+float jsd(float a, float b);
+float logB(float c, float d);
+
+float jsd(float a, float b)
+{
+	float ha=0;
+	float hb=0;
+	float m=0.5*(a+b);
+	
+	if (a==0 && b ==0) { return 0; }
+	else if (a==0 && b!=0) { hb+=b; }
+	else if (a!=0 && b==0) { ha+=a; }
+	else 
+	{ 
+			ha += -1*(a * logB((m/a),2));
+			hb += -1*(b * logB((m/b),2));
+	}
+	float kl=0.5*(ha+hb);
+	return kl;
+}
+
+float logB (float c, float d)
+{
+	if(c==0) { return 0; }
+	else { return log(c) / log(d);}
+}

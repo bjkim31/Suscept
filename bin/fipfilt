@@ -1,0 +1,56 @@
+#!/usr/bin/perl
+
+use strict;
+my @WH;
+my $lmer=$ARGV[3];
+my %hash;
+
+open IN,'<', $ARGV[0]; #list-file;
+
+while(<IN>)
+{
+	chomp($_);
+	$_=int($_);
+	my $index=int($_ / (10**$lmer));
+	my $feature=int($_ % (10**$lmer));
+	$hash{$index}{$feature}=1;
+}
+my @listindex= sort {$a<=>$b} keys %hash;
+
+open IN,'<', $ARGV[1]; #profiled file
+
+my $precision=16;
+my $numformat="%.".$precision."e";
+
+while(<IN>)
+{
+	chomp($_);
+	my @WH=();
+	my @arr=split(/\t/,$_);
+	print STDERR $arr[1],"\n";
+	open FH,'>',"./".$ARGV[2]."/".$arr[1].".tmp";
+	my $tvalue=0;
+	my $index=0;
+
+	for(my $i=0;$i<=$#listindex;$i++)
+	{
+		$index=int($arr[$listindex[$i]+2] / (10**$lmer));
+		my $feature=int($arr[$listindex[$i]+2] % (10**$lmer));
+		if(exists($hash{$index}{$feature})) 
+		{
+#			print $listindex[$i],"\t",$arr[$listindex[$i]+2],"\t",$hash{$listindex[$i]}{$arr[$listindex[$i]+2]},"\n";
+#			print $arr[0],"\t",$index,"\t",$feature,"\t",$arr[$listindex[$i]+2],"\n";
+		
+			push(@WH, $arr[$listindex[$i]+2]);
+#			push(@WH, $index);
+			$tvalue++;
+		}
+	}
+
+	foreach $_ (@WH) 
+	{
+		print FH $_,"\t",sprintf($numformat, 1/$tvalue),"\n"; 
+   }
+	close(FH);
+}
+

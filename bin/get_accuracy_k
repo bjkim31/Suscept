@@ -1,0 +1,307 @@
+#!/usr/bin/env perl
+
+use strict;
+
+use Getopt::Long;
+use File::Basename;
+#use diagnostics;
+
+### initial variable declaration ################
+my $SCRIPT= basename($0);
+my $listfile=""; #initial value is null.
+my (@arr,@arr2,$taxa_id,$len,%resulthash);
+my $matrix="";
+my $noname=0;
+my $nonumber=0;
+my $k=1;
+my $iden=3;
+my $print_summary="";
+my $print_summary2="";
+my $percent=0;
+my $nLIST=0;
+my $keep="";
+my %keephash;
+my $force=0;
+#########################################
+
+GetOptions (
+   "list|f=s"=>\$listfile,
+	"k=s"=>\$k,
+   "matrix|m=s"=>\$matrix,
+   "help|h"=>\&help,
+   "Output-summary|o=s"=>\$print_summary,
+   "Output-summary2|o2=s"=>\$print_summary2,
+   "percentage|p"=>sub {$percent=1;},
+   "iden|i=s"=>\$iden,
+   "keep-list|keep=s"=>\$keep,
+   "force|force"=>sub{$force=1;},
+   "version"=>\&version,
+);
+
+my @LIST=split(/,/,$listfile);
+
+my @LISTFILE; ## list of taxas which denotes each row and column of distance matrix.
+
+if($#LIST<0) { die "You need at least one list file to generate distance matrix.\n";}
+elsif($#LIST<2)
+{
+	if($#LIST==0) {&genARR($LIST[0],0);@{$LISTFILE[1]}=@{$LISTFILE[0]};$nLIST=1;}
+  	 else 	
+	{ 
+		for(my $i=0; $i<=$#LIST; $i++) {&genARR($LIST[$i],$i);} 
+	}
+}
+# print scalar(@LIST),"\n";
+#print scalar(@{$LISTFILE[0]}),"\n";
+#print scalar(@{$LISTFILE[1]}),"\n";
+
+my %counthash;
+
+for(my $i=0;$i<=$#{$LISTFILE[0]};$i++)
+{
+	my $SAMPLE=substr($LISTFILE[0][$i],0,$iden);
+
+	if(exists($counthash{$SAMPLE})){$counthash{$SAMPLE}++;}
+	else{$counthash{$SAMPLE}=1;}
+}
+
+my %counthash2;
+
+for(my $i=0;$i<=$#{$LISTFILE[1]};$i++)
+{
+	my $SAMPLE=substr($LISTFILE[1][$i],0,$iden);
+
+	if(exists($counthash2{$SAMPLE})){$counthash2{$SAMPLE}++;}
+	else{$counthash2{$SAMPLE}=1;}
+}
+
+my $nCASE=scalar(keys(%counthash))+1;
+
+if($keep ne "")
+{
+	open IN,'<',$keep or die $!;
+	while(<IN>)
+	{
+		chomp($_);
+		my @arr=split(/[\t\s]+/,$_);
+		$keephash{$arr[0]}=1;
+	}
+	close(IN);
+}
+
+
+## variables for calculating results
+my $i=0;
+my $tp=0;
+my $tn=0;
+my $fp=0;
+my $fn=0;
+my $mcc=0;
+my $spec=0;
+my $ppv=0;
+my $acc=0;
+my $npv=0;
+my $ncheck;
+
+
+if($print_summary ne "") {
+open FH,'>>',$print_summary;
+print FH "sampleid\tcase\tcount\n";
+close(IN);
+}
+
+open(IN,'<', $matrix) or die "Can't open the matrix file named \"$matrix\"\n",$!,"\n";
+
+while(<IN>)
+{
+
+   chomp($_);
+
+   ## check keep list;
+   if($keep ne "") {unless(exists($keephash{$LISTFILE[0][$i]})) {$i++;next;}}
+
+   ## variables;
+   my %jsdhash;
+   my $SAMPLE=substr($LISTFILE[0][$i],0,$iden);
+   my $TSS=substr($LISTFILE[0][$i],5,2);
+   my @arr=split(/[\t\s]+/,$_);
+
+
+   for(my $j=0; $j<=$#arr;$j++)
+   {
+#		  print $LISTFILE[1][$j],"\t",$arr[$j],"\n";
+		  $jsdhash{$LISTFILE[1][$j]}=$arr[$j];
+   }
+	#initiate some variables
+
+	my $j=1;my %dist_sum;my %dist_size;my %dist_mean;
+	#	SAMPLE-case 	
+
+	my $fcheck=$force;
+	$ncheck=$nLIST;
+	foreach $_ (sort { $jsdhash{$a} <=> $jsdhash{$b} } keys %jsdhash )
+	{
+		if($ncheck==1 || $fcheck==1 ){$ncheck=0;$fcheck=0;next;}
+
+#		print $j," ",$k," ",$SAMPLE," ",substr($_,0,$iden),"\n";
+
+		if(exists($dist_sum{substr($_,0,$iden)})) { $dist_sum{substr($_,0,$iden)}=$dist_sum{substr($_,0,$iden)}+$jsdhash{$_};}
+		else { $dist_sum{substr($_,0,$iden)}=$jsdhash{$_};}
+		if(exists($dist_size{substr($_,0,$iden)})) { $dist_size{substr($_,0,$iden)}++;}
+		else { $dist_size{substr($_,0,$iden)}=1;}
+
+#		print $j,"/",$k,"\t",$_,"(",substr($_,0,$iden),")","\t",$jsdhash{$_},"\t", $dist_sum{substr($_,0,$iden)},"\n";
+#		print $j,"/",$k,"\t",$SAMPLE,"\t",$_,"\t",$jsdhash{$_},"\n";
+
+#		print $i," ",$j,"/",$k,"\t",$SAMPLE,"(",$TSS,":",substr($_,5,2),")","\t",substr($_,0,$iden),"\t",$jsdhash{$_},"\n";
+
+#		print $i," ",$SAMPLE," ",$TSS," ",substr($_,0,$iden)," ",substr($_,5,2),"\n";
+		if($j==$k) {last;}
+		$j++;
+	}
+
+
+	if($print_summary2 ne "")
+	{
+		open FH,'>>',$print_summary2 or die $!;
+		foreach my $key (sort {$dist_size{$b} <=> $dist_size{$a}} keys %dist_size)
+		{
+			print FH $LISTFILE[0][$i],"\t";
+			print FH $key,"\t";
+			print FH $dist_size{$key},"\t";
+			print FH $dist_sum{$key}/$dist_size{$key},"\n";
+		}
+		print FH "\n";
+		close(FH);
+	}
+
+	my $high_trait='';
+	my $high_size=0;
+	my $high_trait_mean=0;
+	## calculate highest count
+#	print $SAMPLE,"\n";
+	foreach $_ (sort {$dist_size{$b} <=> $dist_size{$a}} keys %dist_size)
+	{
+		# Size check
+#		print "\t",$_,"\t",$dist_size{$_},"\t";
+
+		if($high_size==0) 
+		{ 
+			$high_trait=$_;
+			$high_size=$dist_size{$_};
+			$high_trait_mean=$dist_sum{$_}/$dist_size{$_};
+
+		}
+		elsif($high_size == $dist_size{$_}) 
+		{
+			my $mean=$dist_sum{$_}/$dist_size{$_};
+			if($high_trait_mean > $mean)
+			{
+				$high_trait=$_;
+				$high_trait_mean=$mean;
+			} elsif($high_trait_mean==$mean) { print STDERR "# Warning",$i," ",$SAMPLE,":",$high_trait,"(",$high_trait_mean,") ",$_,"(",$mean,")","same mean\n";}
+		}
+	}
+
+#	foreach my $key1 (sort keys %counthash)
+#	{
+#		if($key1 eq $SAMPLE)
+#		{
+#				if($SAMPLE eq $high_trait) {$tp++;}
+#				else {$fn++;}
+#		} elsif($key1 ne $SAMPLE)
+#			{
+#				if($SAMPLE eq $high_trait) {$tn++;}
+#				else {$fp++;}
+#			}
+#	}
+
+#	print $SAMPLE,"\t",$high_trait,"\n";
+
+	if($SAMPLE eq $high_trait) {$tp++;}
+
+	if($print_summary ne "") {&prediction($SAMPLE,$high_trait);}
+
+	$ncheck=$nLIST;
+	$i++;
+#	last;
+}
+close(IN);
+
+## Calculate performances
+
+## testblock
+	
+#	$fn=sprintf("%3.2f",$fn/$nCASE);
+#	$fp=sprintf("%3.2f",$fp/$nCASE/2);
+#	$tn=sprintf("%3.2f",$tn/$nCASE);
+#	$tn=$fn+$fp;
+
+
+#unless($tp==0 and $fp==0 and $tn==0 and $fn==0)
+#{ 
+#	$acc=sprintf("%.4f",($tp+$tn)/($tp+$tn+$fp+$fn));
+#	$acc=sprintf("%.4f",$tp/594);
+
+#	print $#{$LISTFILE[0]},"\n"; print $#{$LISTFILE[1]},"\n";
+
+	$acc=sprintf("%.4f",$tp/($#{$LISTFILE[0]}+1));
+#	$ppv=sprintf("%.2f",$tp/($tp+$fp));
+#	$npv=sprintf("%.2f",$tn/($tn+$fn));
+#	$mcc=sprintf("%.2f",($tp*$tn-$fp*$fn)/sqrt(($tp+$fp)*($tp+$fn)*($tn+$fp)*($tn+$fn)));
+#}
+	$mcc=0;
+
+#print "tp tn fp fn mcc acc ppv npv spec\n";
+#print $tp,"\t",$tn,"\t",$fp,"\t",$fn,"\t",$mcc,"\t",$acc,"\t",$ppv,"\t",$npv,"\n";
+
+print $k,"\t",$tp,"\t",$acc,"\n";
+
+## Print case-prediction Results.
+if($print_summary ne '')
+{
+	open(WFH,'>>',$print_summary) or die "You can't creat file $! :\n";
+	foreach my $key1 (sort keys %counthash)
+	{
+			foreach my $key2 (sort keys %counthash2)
+			{
+				my $value=0;
+				if(exists($resulthash{$key1}{$key2})) {$value=$resulthash{$key1}{$key2};}
+				if($percent==1){$value=$value / $counthash{$key1};}
+				print WFH $key1,"\t",$key2,"\t",$value,"\n";
+			}
+	}
+#	close(WFH);
+}
+
+
+### SUBROUTINES ###
+
+sub prediction()
+{
+	my $sample= shift @_;
+	my $predict= shift @_;
+	if(exists($resulthash{$sample}{$predict})) {$resulthash{$sample}{$predict}++;}
+	else{$resulthash{$sample}{$predict}=1;}
+}
+
+
+sub genARR()
+{
+	my $FILE=shift @_;
+	my $ni=shift @_;
+	open (IN,'<',$FILE) or die "You need train or test list for further process$!\n";
+	while(<IN>)
+	{
+		chomp($_);
+		push(@{$LISTFILE[$ni]},$_);
+	}
+	close(IN);
+}
+sub version()
+{
+	print "Version History\n";
+	print "2014.2.7. add some features about multi-list function. So, you can create n(A)x n(B) matrix now.\n";
+	print "2015.10.9. Calculation for FP FN TN was changed.\n";
+
+}
