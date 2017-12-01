@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-BEGIN { push @INC,"/compgen1/bjkim/perl5/lib/perl5"; }
+#BEGIN { push @INC,"/compgen1/bjkim/perl5/lib/perl5"; }
 
 
 use Getopt::Long;

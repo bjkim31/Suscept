@@ -47,9 +47,9 @@ The sample data is generated from [G1K vcf files](ftp://ftp.ncbi.nlm.nih.gov/100
 
   1. download the vcf files.
 
-  2. removing INDEL variants by [vcftools](https://vcftools.github.io/)
+  2. remove INDEL variants by [vcftools](https://vcftools.github.io/)
 
-  3. removing multipositional SNPs and some conflicts (different genotypes in same position)
+  3. remove multipositional SNPs and some conflicts (different genotypes in same position)
 
   4. check if the whole data is biallelic.
   
@@ -57,7 +57,7 @@ The sample data is generated from [G1K vcf files](ftp://ftp.ncbi.nlm.nih.gov/100
 
   6. calculate kinship relationship by KING and remove some sample which having family relationship.
 
-  7. extract SNPs which are on the Affymetrix Whole GenomeWide Scan 6 array. 
+  7. extract SNPs on chromosome 22 and Affymetrix Genomewide human SNP array 6.0. 
 
 the data contains 2457 samples and 11813 SNPs.
 
@@ -70,6 +70,15 @@ We currently do not support binary ped file. so you must transform it to non-bin
 plink --bfile [:PATH/TO/g1k.affy6.chr22:] --recode --fam [:PATH/To/g1k.affy6.chr22.rename.fam:] --out [:new/PATH/TO/g1k-affy6-chr22:]
 
 ```
+one important thing while conversion is the tagging. we put first few letter character for the class determination.
+
+e.g) paste toy/g1k.affy.chr22.fam toy/g1k.affy.chr22.rename.fam
+
+```
+
+
+
+``` 
 
 
 ## Training
@@ -97,13 +106,29 @@ in this tutorial, we suppose followings
 ```
 for l in 4 6 8;
 do
-	mkdir -p TS1/knn+snps/l[:l-mer:]  # make directory for workspace.
+	mkdir -p TS1/knn+snps/l$l  # make directory for workspace.
        	FIP -l $l -f [:PATH/TO/g1k.TRAIN.list:] [:PATH/TO/g1k-affy6-chr22.ped:] > TS1/knn+snps/l$l/snps.l$l.tmp>
 done
 
 ```
+if the command works well, it prints the foollowings as STDERR
 
-- Parameters for FIP
+**STDERR**
+
+```
+1 : EUR-HG00097 EUR-HG00097
+2 : EUR-HG00099 EUR-HG00099
+3 : EUR-HG00101 EUR-HG00101
+4 : EUR-HG00102 EUR-HG00102
+5 : EUR-HG00103 EUR-HG00103
+6 : EUR-HG00105 EUR-HG00105
+7 : EUR-HG00108 EUR-HG00108
+8 : EUR-HG00109 EUR-HG00109
+9 : EUR-HG00111 EUR-HG00111
+
+```
+
+**Parameters for FIP**
 
   - l, l-mer     : numeric value for length of SNP Syntax
 
@@ -123,13 +148,37 @@ Filtering is divided into 3 steps.
 
 for l in 4 6 8;
 do
-	fipmerge TS1/knn+snps/l$l.tmp > ./TS1/knn+snps/l$l/merged.snps.l$l.tmp  
+	fipmerge TS1/knn+snps/l$l/snps.l$.tmp > ./TS1/knn+snps/l$l/merged.snps.l$l.tmp  
 done
 
 ```
 
- the output is 2 column textfile containing SNP-Syntaxes and its frequency [./fileformat/merged.snps.lx.tmp]](./fileformat/merged.snps.lx.tmp)
+where snps.l$.tmp is output of FIP program. this program currently do not have STDERR output.
 
+
+the outputs,merged.snps.l$l.tmp, is 2 column textfile containing SNP-Syntaxes and its frequency [./fileformat/merged.snps.lx.tmp](./fileformat/merged.snps.lx.tmp)
+
+
+yu can check first 10 line of the output looks like followings :
+
+```
+head ./TS1/knn+snps/l8/merged.snps.l8.tmp
+
+```
+**output**
+```
+020132710       6.6666666666666664e-04
+020132712       6.6666666666666664e-04
+022112112       8.6666666666666663e-03
+022112210       2.0000000000000000e-03
+022112215       6.6666666666666664e-04
+022112710       1.3333333333333333e-03
+022112712       2.0000000000000000e-03
+022112715       9.3333333333333341e-03
+022117112       1.3333333333333333e-03
+022131112       1.0000000000000000e-02
+
+```
 
 #### make filtered SNP-Syntaxes list 
 
@@ -150,11 +199,16 @@ done
 
  the output is used for the SNP-Syntax filtering from the SNP-Syntax profile ('snps.l[:l-mer:].tmp) 
 
- if you use another output name in prior step, you must change sort.sh to run the code since sort.sh oly read `[:DIR:]/knn+snps/l$l/f$f/merged.snps.l$l.tmp`
+ if you use another output name in prior step, you should edit sort.sh since sort.sh oly read `[:DIR:]/knn+snps/l$l/f$f/merged.snps.l$l.tmp`
 
+ if you do not have awk but have gawk, then change the awk in the `./bin/sort.sh` to gawk
+
+
+ output files are `TS1/knn+snps/l$l/f$f/snps.bk.list'. these files are one column text file containing SNP Syntax which passed the filter.
 
 #### make filtered profile
 
+we extract SNP Syntaxes and it's index in the 'TS1/knn+snps/l$l/f$f/snps.bk.list' from whole profile file 'TS1/knn+snps/l$f/snps.l$l.tmp' using fipfilt program.
 
 
 ```
@@ -163,20 +217,35 @@ do
 	for f in 1 5 100;
 	do
 		mkdir -p TS1/knn+snps/l$l/f$f/profile
-		fipfilt ./TS1/knn+snps/$l/f$f/snps.bk.list ./TS1/knn+snps/l$l/snps.l$l.tmp ./TS1/knn+snps/l$l/f$f/profile $l
+		fipfilt ./TS1/knn+snps/l$l/f$f/snps.bk.list ./TS1/knn+snps/l$l/snps.l$l.tmp ./TS1/knn+snps/l$l/f$f/profile $l
 	done
 done
 
 ```
+
+the outputs are two column, syntax and it's frequency, text file which willl save in the directory of third argument.
+
 
 ### distance calculation
 
 
 #### JS divergence calculation
 
+the original JS divergence calculation code is implemented from [ffp program](https://sourceforge.net/projects/ffp-phylogeny/) by GE sims et al ([PNAS,2009](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2634796/). To run this code, you should install [inline::C](http://search.cpan.org/~tinita/Inline-C-0.78/lib/Inline/C.pod)) module from CPAN.
+
+
+
+```
+ perl -MCPAN -e 'install inline::C'
+
+```
+
+compiling is automatically done if you run the perl script however you need BKsource directory for compiling
+
 
 ```
 mkdir BKsource;
+mkdir -p TS1/knn+snps/l$l/f$f/jsd
 
 for l in 4 6 8;
 do 
@@ -184,16 +253,38 @@ do
 	do
 		for name in $(cat [:PATH/TO/g1k.TRAIN.list:]);
 		do 
-				ffpjsd2014 -p 6 -f $LIST ./TS1/knn+snps/l$l/f$f/profile/$name.tmp > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
+				ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l$l/f$f/profile/$name.tmp > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
 		done
 done
 
 ```
 
-JS Divergence is calculated simple C code implemented in `ffpjsd2014` 
+To avoid duplicated calculations, the program removes the samples in the list one by one until the given sample id is reached and then calculate JS divergence between remaining samples and given sample by one vs all aproach when list file floag( -f) is given. when -o option is given, the program calculate JS divergence without sample removal by one vs all approach.
 
-compiling is automatically done if you run the perl script however you need BKsource directory. so please make BKsource. 
+so, in training it's normal that the number of lines (=calculation) are 0 to n-1 where n is the total number of samples in the list.
 
+**Example**
+```
+$ wc -l *.jsd | sort -k1g 
+       0 SAS-HG04100.jsd
+       1 SAS-HG04061.jsd
+       2 SAS-NA20861.jsd
+       3 SAS-HG02733.jsd
+       4 SAS-HG04093.jsd
+       5 SAS-HG02774.jsd
+       6 SAS-HG04118.jsd
+
+    .... ...............
+    .... ...............
+    .... ...............
+
+    1495 AFR-HG02614.jsd
+    1496 AFR-NA18501.jsd
+    1497 AFR-NA19149.jsd
+    1498 AFR-HG02895.jsd
+    1499 AFR-NA19317.jsd
+```
+   
 
 
 #### make matrix
@@ -283,22 +374,28 @@ done | sort -k5g
 - best performance, 94.27%, is shown with the parameter of l=8,f=1 and k=30
  
 
+#### Contingency table
+
+the data for contingency table is acquired by the code in 'perform kNN' section.
+
+please see more details in the section.
+
 ## Testing
 
 
 Testing is almostly same as training, but some arguments are different from training.
 
-the parameter used is l=8,f=1 and k=30 since it shows the best performance.
+the parameters for testing are l=8,f=1 and k=30 since it shows the best performance in training result
 
 
 ```
 # make profile of SNP Syntaxes
 
-FIP.pl -f [:PATH/to/g1k.TEST.list:] -l 8 [:PATH/TO/g1k-affy6-chr22.ped:]  
+FIP.pl -f [:PATH/to/g1k.TEST.list:] -l 8 [:PATH/TO/g1k-affy6-chr22.ped:] > TS1/knn+snps/l8/test_.snps.l8.tmp  
 	
 # make filtered profile using training filtered syntax list
 
-fipfilt.pl ./$DIR/knn+snps/l$l/f$f/snps.bk.list ./$DIR/knn+snps/l$l/test_$CASE''.snps.l$l.tmp ./$DIR/knn+snps/l$l/f$f/profile $l
+fipfilt.pl ./TS1/knn+snps/l8/f1/snps.bk.list ./TS1/knn+snps/l8/test_.snps.l8.tmp ./TS1/knn+snps/l8/f1/profile 8
 
 # jsd calculation between training set and testing set
 
@@ -321,14 +418,13 @@ done
 cat ./TS1/knn+snps/l8/f1/jsd/* > ./TS1/knn+snps/l8/f1/snps.dist
 
 # make jsd divergence matrix
-# the command generate #TEST samples x #Train samples JS distance matrix
+# the command generate  number of TEST samples x number of Train samples matrix
 
-perl jsd_mat_maker3.pl -f $TESTLIST,$LIST -m ./TS$i/knn+snps/l$l/f$f/snps.dist -b -n > ./TS$i/knn+snps/l$l/f$f/test_snps.$tst.jsd.tmp
-
+perl jsd_mat_maker3.pl -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m ./TS1/knn+snps/l8/f1/snps.dist -b -n > ./TS1/knn+snps/l8/f1/test_snps.jsd.tmp
 
 # calculate testing accuracy
 
-get_accuracy_k -i 3 -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l8/f1/test_snps.jsd.tmp -k 30 -o opt/TS$DIR.l8.f1.k30.result
+get_accuracy_k -i 3 -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m TS1/knn+snps/l8/f1/test_snps.jsd.tmp -k 30 -o opt/TEST_TS1.l8.f1.k30.result
 
 ```
 

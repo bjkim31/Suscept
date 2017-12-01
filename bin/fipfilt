@@ -5,7 +5,7 @@ my @WH;
 my $lmer=$ARGV[3];
 my %hash;
 
-open IN,'<', $ARGV[0]; #list-file;
+open IN,'<', $ARGV[0] or die "No such file of $ARGV[0]"; #snps.bk.list;
 
 while(<IN>)
 {
@@ -27,6 +27,8 @@ while(<IN>)
 	chomp($_);
 	my @WH=();
 	my @arr=split(/\t/,$_);
+
+#	print STDERR $arr[1],"\tReading ",$#arr+1," Syntaxes\n";
 	print STDERR $arr[1],"\n";
 	open FH,'>',"./".$ARGV[2]."/".$arr[1].".tmp";
 	my $tvalue=0;
