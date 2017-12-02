@@ -36,12 +36,12 @@ Here are short descriptions of the files
 
 **Data files**
 
-- [g1k.affy6.chr22.bed](./toy/g1k.affy6.chr22.bed) - binary plink file of genotypes
-- [g1k.affy6.chr22.fam](./toy/g1k.affy6.chr22.fam) - family relationship/phenotype file
-- [g1k.affy6.chr22.bim](./toy/g1k.affy6.chr22.bim) - variant name/coordinate file for binary plink ped file.
+- [g1k.affy6.chr22.bed](../toy/g1k.affy6.chr22.bed) - binary plink file of genotypes
+- [g1k.affy6.chr22.fam](../toy/g1k.affy6.chr22.fam) - family relationship/phenotype file
+- [g1k.affy6.chr22.bim](../toy/g1k.affy6.chr22.bim) - variant name/coordinate file for binary plink ped file.
 
-- [g1k.TRAIN.list](./toy/g1k.TRAIN.list) - training files (equivalent for individual id in .fam file)
-- [g1k.TEST.list](./toy/g1k.TEST.list)   - testing files  (equivalent for individual id in .fam file)
+- [g1k.TRAIN.list](../toy/g1k.TRAIN.list) - training files (equivalent for individual id in .fam file)
+- [g1k.TEST.list](../toy/g1k.TEST.list)   - testing files  (equivalent for individual id in .fam file)
 
 The sample data is generated from G1K .vcf files located in [NCBI g1k repository](ftp://ftp.ncbi.nlm.nih.gov/1000genomes/ftp/release/20130502) as follows.
 
