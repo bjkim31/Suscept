@@ -321,10 +321,10 @@ done
 
 jsd_mat_maker is a program to make distance matrix from 3 column distance list file.
 
-- -f is the list of files. two list is possible if you want n (first list) x m(second list) matrix when you use "," as seperator. 
-- -m is 3 column list file which contains sample A, sample B, and JS divergence score.
-- -n is given the output does not print sample names
-- -a is given the output does not print number
+- \-f is the list of files. two list is possible if you want n (first list) x m(second list) matrix when you use "," as seperator. 
+- \-m is 3 column list file which contains sample A, sample B, and JS divergence score.
+- \-n is given the output does not print sample names
+- \-a is given the output does not print number
 
 ### Perform kNN
 
