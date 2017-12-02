@@ -275,10 +275,7 @@ done
 
 where -p flag for the number of places under decimal point, -f for the list of profile. input file is the full path/file name/extension for individual profile.
 
-the program's strategy to calculate divergence is avoiding duplicated caclulation. for example, if we calculate the JS divergence between sample A and B then we do not need the calculation betwee B and A. the program removes the samples one by one in the list until the given sample id, individual profile file, is reached and then calculate JS divergence between remaining samples and given samples by one vs all approach when the file list flag (-f) is given. when -o 
-
-
-To avoid duplicated calculations, the program removes the samples in the list one by one until the given sample id is reached and then calculate JS divergence between remaining samples and given sample by one vs all aproach when list file floag( -f) is given. when -o option is given, the program calculate JS divergence without sample removal. so -o option used to calculate JS divergence in testing.
+the program's strategy to calculate divergence is avoiding duplicated caclulation. for example, if we calculate the JS divergence between sample A and B then we do not need the calculation betwee B and A. the program removes the samples one by one in the list until the given sample id, individual profile file, is reached and then calculate JS divergence between remaining samples and given samples by one vs all approach when the file list flag (-f) is given. when -o option is given, the program calculate JS divergence without sample removal. so -o option used to calculate JS divergence in testing.
 
 In training it's normal that the number of lines (=calculation) are 0 to n-1 where n is the total number of samples in the list.
 
