@@ -17,13 +17,13 @@ BJ Kim (airbj31@yonsei.ac.kr or airbj31@berkeley.edu)
       - [calculate frequency of SNP Syntaxes](#calculate-frequency-of-SNP-Syntaxes)
       - [Make filtered Syntaxes list](#make-filtered-syntaxes-list)
       - [Make filtered profiles](#make-filtered-profile)  
-    - [distance calculation](#distance-calculation)
+    - [Distance calculation](#distance-calculation)
       - [JS divergence calculation](#JS-divergence-calculation)
       - [make matrix](#make-matrix)
-    - [perform kNN](#perform-kNN)
+    - [Perform kNN](#Perform-kNN)
       - [get_accuracy_k]()
     - [Results](#Results)
-      - [parameter optimization](#parameter optimization)
+      - [parameter optimization](#parameter-optimization)
       - contingency table
   - [Testing](#Testing)
 
@@ -43,7 +43,7 @@ Here are short descriptions of the files
 - [g1k.TRAIN.list](./toy/g1k.TRAIN.list) - training files (equivalent for individual id in .fam file)
 - [g1k.TEST.list](./toy/g1k.TEST.list)   - testing files  (equivalent for individual id in .fam file)
 
-The sample data is generated from G1K .vcf files in [NCBI 1000 genome repository](ftp://ftp.ncbi.nlm.nih.gov/1000genomes/ftp/release/20130502/) as follows.
+The sample data is generated from G1K .vcf files located in [NCBI g1k repository](ftp://ftp.ncbi.nlm.nih.gov/1000genomes/ftp/release/20130502) as follows.
 
   1. download the vcf files.
 
@@ -251,7 +251,7 @@ To run this code, you should install [inline::C](http://search.cpan.org/~tinita/
 
 ```
 
-if you are not familiar with perl, I recommend to install [perlbrew](https://perlbrew.pl/)
+if you are not familiar with perl, I recommend you to install and use [perlbrew](https://perlbrew.pl/)
 
 compiling is automatically done if you run the perl script however you need BKsource directory for compiling
 
@@ -303,11 +303,9 @@ $ wc -l *.jsd | sort -k1g
     1498 AFR-HG02895.jsd
     1499 AFR-NA19317.jsd
 ```
-   
-
+one example of output file is [../toy/EUR-NA12340.jsd](../toy/EUR-NA12340.jsd)
 
 #### make matrix
-
 
 ```
 for l in 4 6 8;
@@ -328,12 +326,11 @@ jsd_mat_maker is a program to make distance matrix from 3 column distance list f
 - -n is given the output does not print sample names
 - -a is given the output does not print number
 
-
-### perform kNN
+### Perform kNN
 
 kNN clustering is performed by perl ([get_accuracy_k](../bin/get_accuracy_k)) or R ([helloKNN.R](../bin/hellokNN.R))
 
-the R code is not used in this tutorial.
+the R code is not available yet.
 
 ```
 for l in 4 6 8;
@@ -352,16 +349,16 @@ done
 arguments
 
 
-- i is the length of tag which denotes class of the sample. e.g) EUR for European.
+- - i is the length of tag which denotes class of the sample. e.g) EUR for European.
  
-- f is the training list. the order should be same as the matrix's order.
+- - f is the training list. the order should be same as the matrix's order.
 
-- k is the number of neighbor to judge the class.
+- - k is the number of neighbor to judge the class.
 
-- o [:output:] 
-    summary output for contingency table. 
-    for the detailed file format, please see the description, [./fileformat/summary](./fileformat/summary), and example in [../toy/result/TS1.l8.f1.k30.summary](../toy/result/TS1.l8.f1.k30.summary)
-    the example file is the output of l=8,f=1 and k=30
+- - o [:output:] 
+     summary output for contingency table. 
+     for the detailed file format, please see the description, [./fileformat/summary](./fileformat/summary), and example in [../toy/result/TS1.l8.f1.k30.summary](../toy/result/TS1.l8.f1.k30.summary)
+     the example file is the output of l=8,f=1 and k=30
 
 STDOUT is 3 column output with k, number of True prediction and Accuracy ([../toy/result/TS1.l8.f1](../toy/result/TS1.l8.f1)).
 	
@@ -397,7 +394,6 @@ done | sort -k5g
 
 ```
 
-
 - best performance, 94.27%, is shown with the parameter of l=8,f=1 and k=30
  
 #### Contingency table
@@ -407,7 +403,6 @@ the data for contingency table is acquired by the code in 'perform kNN' section.
 please see more details in the section.
 
 ## Testing
-
 
 Testing is almostly same as training, but some arguments are different from training.
 
@@ -425,10 +420,9 @@ fipfilt.pl ./TS1/knn+snps/l8/f1/snps.bk.list ./TS1/knn+snps/l8/test_.snps.l8.tmp
 
 # jsd calculation between training set and testing set
 
-
 for name in $(cat [:PATH/TO/g1k.TEST.list:]);
 do 
-			ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l$l/f$f/profile/$name.tmp -o > TS1/knn+snps/l$l/f$f/jsd/$name.jsd
+    ffpjsd2014 -p 6 -f [:PATH/TO/g1k.TRAIN.list:] ./TS1/knn+snps/l8/f1/profile/$name.tmp -o > TS1/knn+snps/l8/f1/jsd/$name.jsd
 done
 	
 # merge the jsd output 
@@ -438,7 +432,7 @@ cat ./TS1/knn+snps/l8/f1/jsd/* > ./TS1/knn+snps/l8/f1/snps.dist
 # make jsd divergence matrix
 # the command generate  number of TEST samples x number of Train samples matrix
 
-perl jsd_mat_maker3.pl -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m ./TS1/knn+snps/l8/f1/snps.dist -b -n > ./TS1/knn+snps/l8/f1/test_snps.jsd.tmp
+jsd_mat_maker -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m ./TS1/knn+snps/l8/f1/snps.dist -b -n > ./TS1/knn+snps/l8/f1/test_snps.jsd.tmp
 
 # calculate testing accuracy
 
@@ -454,6 +448,7 @@ get_accuracy_k -i 3 -f [:PATH/TO/g1k.TEST.list],[:PATH/TO/g1k.TRAIN.list:] -m TS
 
 ```
 - Testing accuracy is 97.81%.
+- Testing summary file for contingency table is [../toy/result/TEST_TS1.l8.f1.k30.result](../toy/result/TEST_TS1.l8.f1.k30.result)
 
 for further analysis, we use R script. 
 
