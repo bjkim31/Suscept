@@ -139,9 +139,9 @@ If the command works well, it prints family ids and individual ids to STDERR as 
 
 **Parameters for FIP**
 
-  - l, l-mer     : numeric value for length of SNP Syntax
+  - \-l, l-mer     : numeric value for length of SNP Syntax
 
-  - f, file-list : list of individual ids to profile
+  - \-f, file-list : list of individual ids to profile
 
   - inputfile    : argument withoug flag. non-binary plink ped file.
 
@@ -349,13 +349,13 @@ done
 arguments
 
 
-- - i is the length of tag which denotes class of the sample. e.g) EUR for European.
+- \-i <number> is the length of tag which denotes class of the sample. e.g) EUR for European.
  
-- - f is the training list. the order should be same as the matrix's order.
+- \-f <training list file> is the training list. the order should be same as the matrix's order.
 
-- - k is the number of neighbor to judge the class.
+- \-k <number> is the number of neighbor to judge the class.
 
-- - o [:output:] 
+- \-o [:output:] 
      summary output for contingency table. 
      for the detailed file format, please see the description, [./fileformat/summary](./fileformat/summary), and example in [../toy/result/TS1.l8.f1.k30.summary](../toy/result/TS1.l8.f1.k30.summary)
      the example file is the output of l=8,f=1 and k=30
