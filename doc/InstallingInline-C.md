@@ -114,7 +114,7 @@ please add `source ~/perl5/perlbrew/etc/bashrc` to the end of `.bash_profile` or
 $ perlbrew install perl-5.22.4
 
 Fetching perl 5.22.4 as $HOME/perl5/perlbrew/dists/perl-5.22.4.tar.bz2
-Download http://www.cpan.org/src/5.0/perl-5.22.4.tar.bz2 to /home/bjkim/perl5/perlbrew/dists/perl-5.22.4.tar.bz2
+Download http://www.cpan.org/src/5.0/perl-5.22.4.tar.bz2 to $HOME/perl5/perlbrew/dists/perl-5.22.4.tar.bz2
 Installing $HOME/perl5/perlbrew/build/perl-5.22.4 into ~/perl5/perlbrew/perls/perl-5.22.4
 
 This could take a while. You can run the following command on another shell to track the status:
